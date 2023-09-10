@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Hello World test!!</title>
+
+</head>
+<body>
+
+{# すでに有料会員登録している場合は、プランにアクセスできるようにする。有料会員ではない場合は、そのリンクを表示させる。#}
+{% if request.user.customer %}
+<div>
+    <a class="button" href="{% url 'bbs:portal' %}">有料会員登録の設定をする</a>
+</div>
+{% else %}
+<form action="{% url 'bbs:checkout' %}" method="post">
+    {% csrf_token %}
+    <input type="submit" value="有料会員登録する">
+</form>
+{% endif %}
+
+</body>
+</html>
