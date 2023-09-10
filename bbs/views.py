@@ -12,13 +12,13 @@ from django.urls import reverse_lazy
 import stripe
 stripe.api_key  = settings.STRIPE_API_KEY
 
-class IndexView(View):
+class IndexView(LoginRequiredMixin,View):
     def get(self, request, *args, **kwargs):
         return render(request,"bbs/index.html")
 
 index   = IndexView.as_view()
 
-class CheckoutView(View):
+class CheckoutView(LoginRequiredMixin,View):
 
     def post(self, request, *args, **kwargs):
 
@@ -35,6 +35,8 @@ class CheckoutView(View):
             success_url=request.build_absolute_uri(reverse_lazy("bbs:success")) + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=request.build_absolute_uri(reverse_lazy("bbs:index")),
         )
+
+        print( checkout_session["id"] )
 
         return redirect(checkout_session.url)
 
@@ -56,6 +58,15 @@ class SuccessView(LoginRequiredMixin,View):
         except:
             print( "このセッションIDは無効です。")
             return redirect("bbs:index")
+
+        
+        #TODO: statusをチェックする。未払であれば拒否する。
+        if checkout_session["status"] != "paid":
+            print("未払い")
+            return redirect("bbs:index")
+
+        print("支払い済み")
+
 
         # 有効であれば、セッションIDからカスタマーIDを取得。ユーザーモデルへカスタマーIDを記録する。
         user            = CustomUser.objects.filter(id=request.user.id).first()
